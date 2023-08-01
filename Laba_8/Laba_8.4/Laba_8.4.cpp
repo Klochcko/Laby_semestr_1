@@ -4,6 +4,9 @@
 #include <vector>
 #include <algorithm>
 
+
+//some test changes
+
 struct Contact {
     std::string lastName;
     std::string firstName;
