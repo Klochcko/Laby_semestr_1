@@ -1,25 +1,22 @@
-п»ї#include <iostream>
-#include <iomanip>
+#include <iostream>
 #include <algorithm>
 #include <ctime>
-#include <fstream>
-#include <vector>
-#include <string>
 
-// Р¤СѓРЅРєС†С–СЏ РґР»СЏ РіРµРЅРµСЂР°С†С–С— РІРёРїР°РґРєРѕРІРёС… РµР»РµРјРµРЅС‚С–РІ Сѓ РјР°СЃРёРІС– char
+// Функція для генерації випадкових елементів у масиві char
 void generateRandomData(char arr[], int size) {
     for (int i = 0; i < size; i++)
-        arr[i] = 'A' + rand() % 26; // Р“РµРЅРµСЂСѓС”РјРѕ РІРёРїР°РґРєРѕРІСѓ РІРµР»РёРєСѓ Р»С–С‚РµСЂСѓ
+        arr[i] = 'A' + rand() % 26; // Генеруємо випадкову велику літеру
 }
 
-// Р¤СѓРЅРєС†С–СЏ РґР»СЏ РіРµРЅРµСЂР°С†С–С— РІРёРїР°РґРєРѕРІРёС… РµР»РµРјРµРЅС‚С–РІ Сѓ РјР°СЃРёРІС– float
+// Функція для генерації випадкових елементів у масиві float
 void generateRandomData(float arr[], int size) {
     for (int i = 0; i < size; i++)
-        arr[i] = static_cast<float>(rand()) / static_cast<float>(RAND_MAX); // Р“РµРЅРµСЂСѓС”РјРѕ РІРёРїР°РґРєРѕРІРµ РґС–Р№СЃРЅРµ С‡РёСЃР»Рѕ [0, 1)
+        arr[i] = static_cast<float>(rand()) / static_cast<float>(RAND_MAX); // Генеруємо випадкове дійсне число [0, 1)
 }
 
-// РђР»РіРѕСЂРёС‚Рј СЃРѕСЂС‚СѓРІР°РЅРЅСЏ РѕР±РјС–РЅРѕРј РґР»СЏ РјР°СЃРёРІСѓ char
-void bubbleSort(char arr[], int size) {
+// Алгоритм сортування обміном для будь-якого масиву
+template<typename T>
+void bubbleSort(T arr[], int size) {
     for (int i = 0; i < size - 1; i++) {
         for (int j = 0; j < size - i - 1; j++) {
             if (arr[j] > arr[j + 1]) {
@@ -29,11 +26,12 @@ void bubbleSort(char arr[], int size) {
     }
 }
 
-// РђР»РіРѕСЂРёС‚Рј СЃРѕСЂС‚СѓРІР°РЅРЅСЏ РЁРµР»Р»Р° РґР»СЏ РјР°СЃРёРІСѓ float
-void shellSort(float arr[], int size) {
+// Алгоритм сортування Шелла для будь-якого масиву
+template<typename T>
+void shellSort(T arr[], int size) {
     for (int gap = size / 2; gap > 0; gap /= 2) {
         for (int i = gap; i < size; i++) {
-            float temp = arr[i];
+            T temp = arr[i];
             int j;
             for (j = i; j >= gap && arr[j - gap] > temp; j -= gap) {
                 arr[j] = arr[j - gap];
@@ -43,66 +41,41 @@ void shellSort(float arr[], int size) {
     }
 }
 
-// Р¤СѓРЅРєС†С–СЏ РґР»СЏ Р·Р°РїРёСЃСѓ СЂРµР·СѓР»СЊС‚Р°С‚С–РІ Сѓ С„Р°Р№Р» CSV
-void writeResultsToCSV(const std::string& filename, const std::vector<std::vector<std::string>>& results) {
-    std::ofstream outFile(filename);
-
-    for (const auto& row : results) {
-        for (std::size_t col = 0; col < row.size(); col++) {
-            outFile << row[col];
-            if (col < row.size() - 1) {
-                outFile << ",";
-            }
-        }
-        outFile << std::endl;
-    }
-
-    outFile.close();
+// Функція для вимірювання часу сортування та виведення результату на екран
+template<typename T>
+void measureAndPrintSortingTime(const char* algorithmName, T arr[], int size) {
+    std::clock_t start_time = std::clock();
+    bubbleSort(arr, size); // Виберіть тут потрібний алгоритм сортування (bubbleSort чи shellSort)
+    std::clock_t end_time = std::clock();
+    double elapsed_time = static_cast<double>(end_time - start_time) / CLOCKS_PER_SEC;
+    std::cout << "Sorting with " << algorithmName << " took: " << elapsed_time << " seconds" << std::endl;
 }
 
 int main() {
     const int dataSizeSmall = 10;
     const int dataSizeLarge = 1000000;
 
-    // РњР°СЃРёРІРё РґР»СЏ Р·Р±РµСЂС–РіР°РЅРЅСЏ С‚РµСЃС‚РѕРІРёС… РґР°РЅРёС…
+    // Масиви для зберігання тестових даних
     char charArraySmall[dataSizeSmall];
     char charArrayLarge[dataSizeLarge];
     float floatArraySmall[dataSizeSmall];
     float floatArrayLarge[dataSizeLarge];
 
-    // Р’РµРєС‚РѕСЂ РґР»СЏ Р·Р±РµСЂС–РіР°РЅРЅСЏ СЂРµР·СѓР»СЊС‚Р°С‚С–РІ
-    std::vector<std::vector<std::string>> results;
+    // Генеруємо нові випадкові дані для масивів
+    generateRandomData(charArraySmall, dataSizeSmall);
+    generateRandomData(charArrayLarge, dataSizeLarge);
+    generateRandomData(floatArraySmall, dataSizeSmall);
+    generateRandomData(floatArrayLarge, dataSizeLarge);
 
-    // Р—Р°РіРѕР»РѕРІРѕРє С‚Р°Р±Р»РёС†С–
-    results.push_back(std::vector<std::string>{"Iteration", "Bubble Sort (char) - Small Data Size", "Shell Sort (float) - Large Data Size"});
+    // Вимірюємо та виводимо час сортування для кожного алгоритму та типу даних
+    std::cout << "Small Data Size" << std::endl;
+    measureAndPrintSortingTime("Bubble Sort (char)", charArraySmall, dataSizeSmall);
+    measureAndPrintSortingTime("Shell Sort (float)", floatArraySmall, dataSizeSmall);
 
-    // РџРѕРІС‚РѕСЂРёРјРѕ РґС–С— 5 СЂР°Р·С–РІ
-    for (int iteration = 0; iteration < 5; iteration++) {
-        // Р“РµРЅРµСЂСѓС”РјРѕ РЅРѕРІС– РІРёРїР°РґРєРѕРІС– РґР°РЅС– РґР»СЏ РјР°СЃРёРІС–РІ
-        generateRandomData(charArraySmall, dataSizeSmall);
-        generateRandomData(charArrayLarge, dataSizeLarge);
-        generateRandomData(floatArraySmall, dataSizeSmall);
-        generateRandomData(floatArrayLarge, dataSizeLarge);
-
-        // РЎРѕСЂС‚СѓРІР°РЅРЅСЏ РјР°СЃРёРІС–РІ char С‚Р° float
-        std::clock_t start_time = std::clock();
-        bubbleSort(charArraySmall, dataSizeSmall);
-        shellSort(floatArrayLarge, dataSizeLarge);
-        std::clock_t end_time = std::clock();
-        double elapsed_time_bubble = static_cast<double>(end_time - start_time) / CLOCKS_PER_SEC;
-
-        start_time = std::clock();
-        shellSort(floatArraySmall, dataSizeSmall);
-        bubbleSort(charArrayLarge, dataSizeLarge);
-        end_time = std::clock();
-        double elapsed_time_shell = static_cast<double>(end_time - start_time) / CLOCKS_PER_SEC;
-
-        // Р—Р°РїРёСЃСѓС”РјРѕ СЂРµР·СѓР»СЊС‚Р°С‚Рё РІ С‚Р°Р±Р»РёС†СЋ
-        results.push_back({ std::to_string(iteration + 1), std::to_string(elapsed_time_bubble), std::to_string(elapsed_time_shell) });
-    }
-
-    // Р—Р±РµСЂРµР¶РµРјРѕ СЂРµР·СѓР»СЊС‚Р°С‚Рё Сѓ С„Р°Р№Р» CSV
-    writeResultsToCSV("results.csv", results);
+    std::cout << "\nLarge Data Size" << std::endl;
+    measureAndPrintSortingTime("Bubble Sort (char)", charArrayLarge, dataSizeLarge);
+    measureAndPrintSortingTime("Shell Sort (float)", floatArrayLarge, dataSizeLarge);
 
     return 0;
 }
+
