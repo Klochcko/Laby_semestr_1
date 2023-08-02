@@ -90,9 +90,9 @@ int main() {
     std::cout << "Дані про співробітників:" << std::endl;
     for (const auto& employee : employees) {
         std::cout << employee.lastName << " " << employee.firstName << " " << employee.middleName
-            << ", посада: " << employee.position << ", зарплата: " << employee.salary
-            << ", дата народження: " << employee.dateOfBirth << ", дата працевлаштування: "
-            << employee.hireDate << ", освіта: " << employee.education << std::endl;
+                  << ", посада: " << employee.position << ", зарплата: " << employee.salary
+                  << ", дата народження: " << employee.dateOfBirth << ", дата працевлаштування: "
+                  << employee.hireDate << ", освіта: " << employee.education << std::endl;
     }
 
     // Виведення співробітників з зарплатнею на 25% вище середнього і віком до 25 років
@@ -102,7 +102,7 @@ int main() {
         int age = calculateAge(employee.dateOfBirth);
         if (employee.salary > averageSalary * 1.25 && age <= 25) {
             std::cout << employee.lastName << " " << employee.firstName << " " << employee.middleName
-                << ", зарплата: " << employee.salary << ", вік: " << age << " років" << std::endl;
+                      << ", зарплата: " << employee.salary << ", вік: " << age << " років" << std::endl;
             foundEmployees = true;
         }
     }
@@ -112,3 +112,4 @@ int main() {
 
     return 0;
 }
+
