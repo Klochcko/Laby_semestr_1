@@ -1,37 +1,45 @@
 #include <iostream>
-#include <algorithm>
 #include <ctime>
 
-// Функція для генерації випадкових елементів у масиві char
-void generateRandomData(char arr[], int size) {
-    for (int i = 0; i < size; i++)
-        arr[i] = 'A' + rand() % 26; // Генеруємо випадкову велику літеру
+void swap(char &a, char &b) {
+    char temp = a;
+    a = b;
+    b = temp;
 }
 
-// Функція для генерації випадкових елементів у масиві float
-void generateRandomData(float arr[], int size) {
-    for (int i = 0; i < size; i++)
-        arr[i] = static_cast<float>(rand()) / static_cast<float>(RAND_MAX); // Генеруємо випадкове дійсне число [0, 1)
+void swap(float &a, float &b) {
+    float temp = a;
+    a = b;
+    b = temp;
 }
 
-// Алгоритм сортування обміном для будь-якого масиву
-template<typename T>
-void bubbleSort(T arr[], int size) {
+// Реалізація алгоритму сортування обміном (bubble sort) для масивів типу char
+void bubbleSort(char arr[], int size) {
     for (int i = 0; i < size - 1; i++) {
         for (int j = 0; j < size - i - 1; j++) {
             if (arr[j] > arr[j + 1]) {
-                std::swap(arr[j], arr[j + 1]);
+                swap(arr[j], arr[j + 1]);
             }
         }
     }
 }
 
-// Алгоритм сортування Шелла для будь-якого масиву
-template<typename T>
-void shellSort(T arr[], int size) {
+// Реалізація алгоритму сортування обміном (bubble sort) для масивів типу float
+void bubbleSort(float arr[], int size) {
+    for (int i = 0; i < size - 1; i++) {
+        for (int j = 0; j < size - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                swap(arr[j], arr[j + 1]);
+            }
+        }
+    }
+}
+
+// Реалізація алгоритму сортування Шелла для масивів типу char
+void shellSort(char arr[], int size) {
     for (int gap = size / 2; gap > 0; gap /= 2) {
         for (int i = gap; i < size; i++) {
-            T temp = arr[i];
+            char temp = arr[i];
             int j;
             for (j = i; j >= gap && arr[j - gap] > temp; j -= gap) {
                 arr[j] = arr[j - gap];
@@ -41,40 +49,128 @@ void shellSort(T arr[], int size) {
     }
 }
 
-// Функція для вимірювання часу сортування та виведення результату на екран
-template<typename T>
-void measureAndPrintSortingTime(const char* algorithmName, T arr[], int size) {
-    std::clock_t start_time = std::clock();
-    bubbleSort(arr, size); // Виберіть тут потрібний алгоритм сортування (bubbleSort чи shellSort)
-    std::clock_t end_time = std::clock();
-    double elapsed_time = static_cast<double>(end_time - start_time) / CLOCKS_PER_SEC;
-    std::cout << "Sorting with " << algorithmName << " took: " << elapsed_time << " seconds" << std::endl;
+// Реалізація алгоритму сортування Шелла для масивів типу float
+void shellSort(float arr[], int size) {
+    for (int gap = size / 2; gap > 0; gap /= 2) {
+        for (int i = gap; i < size; i++) {
+            float temp = arr[i];
+            int j;
+            for (j = i; j >= gap && arr[j - gap] > temp; j -= gap) {
+                arr[j] = arr[j - gap];
+            }
+            arr[j] = temp;
+        }
+    }
 }
 
 int main() {
-    const int dataSizeSmall = 10;
-    const int dataSizeLarge = 1000000;
+    const int SIZE_SMALL = 10;
+    const int SIZE_LARGE = 1000000;
+    char arr_small_char[SIZE_SMALL];
+    char arr_large_char[SIZE_LARGE];
+    float arr_small_float[SIZE_SMALL];
+    float arr_large_float[SIZE_LARGE];
 
-    // Масиви для зберігання тестових даних
-    char charArraySmall[dataSizeSmall];
-    char charArrayLarge[dataSizeLarge];
-    float floatArraySmall[dataSizeSmall];
-    float floatArrayLarge[dataSizeLarge];
+    // Заповнення масивів випадковими значеннями (для char)
+    srand(time(0));
+    for (int i = 0; i < SIZE_SMALL; i++) {
+        arr_small_char[i] = rand() % 256; // Випадкові значення від 0 до 255 (char - 1 байт)
+    }
+    for (int i = 0; i < SIZE_LARGE; i++) {
+        arr_large_char[i] = rand() % 256;
+    }
 
-    // Генеруємо нові випадкові дані для масивів
-    generateRandomData(charArraySmall, dataSizeSmall);
-    generateRandomData(charArrayLarge, dataSizeLarge);
-    generateRandomData(floatArraySmall, dataSizeSmall);
-    generateRandomData(floatArrayLarge, dataSizeLarge);
+    // Заповнення масивів випадковими значеннями (для float)
+    for (int i = 0; i < SIZE_SMALL; i++) {
+        arr_small_float[i] = static_cast<float>(rand()) / static_cast<float>(RAND_MAX); // Випадкові значення від 0 до 1
+    }
+    for (int i = 0; i < SIZE_LARGE; i++) {
+        arr_large_float[i] = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    }
 
-    // Вимірюємо та виводимо час сортування для кожного алгоритму та типу даних
-    std::cout << "Small Data Size" << std::endl;
-    measureAndPrintSortingTime("Bubble Sort (char)", charArraySmall, dataSizeSmall);
-    measureAndPrintSortingTime("Shell Sort (float)", floatArraySmall, dataSizeSmall);
+    // Сортування масивів та вимірювання часу виконання (для char)
+    clock_t startTime, endTime;
+    int iterations = 5;
 
-    std::cout << "\nLarge Data Size" << std::endl;
-    measureAndPrintSortingTime("Bubble Sort (char)", charArrayLarge, dataSizeLarge);
-    measureAndPrintSortingTime("Shell Sort (float)", floatArrayLarge, dataSizeLarge);
+    std::cout << "Bubble Sort for arrays of char..." << std::endl;
+
+    // Сортування та вимірювання часу для масиву розміром 10 (char)
+    startTime = clock();
+    for (int i = 0; i < iterations; i++) {
+        bubbleSort(arr_small_char, SIZE_SMALL);
+    }
+    endTime = clock();
+    double timeSmallChar_bubble = double(endTime - startTime) / CLOCKS_PER_SEC / iterations;
+    std::cout << "Time taken for sorting array of size " << SIZE_SMALL << " (char) using Bubble Sort: " << timeSmallChar_bubble << " seconds" << std::endl;
+
+    // Сортування та вимірювання часу для масиву розміром 1000000 (char)
+    startTime = clock();
+    for (int i = 0; i < iterations; i++) {
+        bubbleSort(arr_large_char, SIZE_LARGE);
+    }
+    endTime = clock();
+    double timeLargeChar_bubble = double(endTime - startTime) / CLOCKS_PER_SEC / iterations;
+    std::cout << "Time taken for sorting array of size " << SIZE_LARGE << " (char) using Bubble Sort: " << timeLargeChar_bubble << " seconds" << std::endl;
+
+    std::cout << "Shell Sort for arrays of char..." << std::endl;
+
+    // Сортування та вимірювання часу для масиву розміром 10 (char)
+    startTime = clock();
+    for (int i = 0; i < iterations; i++) {
+        shellSort(arr_small_char, SIZE_SMALL);
+    }
+    endTime = clock();
+    double timeSmallChar_shell = double(endTime - startTime) / CLOCKS_PER_SEC / iterations;
+    std::cout << "Time taken for sorting array of size " << SIZE_SMALL << " (char) using Shell Sort: " << timeSmallChar_shell << " seconds" << std::endl;
+
+    // Сортування та вимірювання часу для масиву розміром 1000000 (char)
+    startTime = clock();
+    for (int i = 0; i < iterations; i++) {
+        shellSort(arr_large_char, SIZE_LARGE);
+    }
+    endTime = clock();
+    double timeLargeChar_shell = double(endTime - startTime) / CLOCKS_PER_SEC / iterations;
+    std::cout << "Time taken for sorting array of size " << SIZE_LARGE << " (char) using Shell Sort: " << timeLargeChar_shell << " seconds" << std::endl;
+
+    std::cout << "Bubble Sort for arrays of float..." << std::endl;
+
+    // Сортування та вимірювання часу для масиву розміром 10 (float)
+    startTime = clock();
+    for (int i = 0; i < iterations; i++) {
+        bubbleSort(arr_small_float, SIZE_SMALL);
+    }
+    endTime = clock();
+    double timeSmallFloat_bubble = double(endTime - startTime) / CLOCKS_PER_SEC / iterations;
+    std::cout << "Time taken for sorting array of size " << SIZE_SMALL << " (float) using Bubble Sort: " << timeSmallFloat_bubble << " seconds" << std::endl;
+
+    // Сортування та вимірювання часу для масиву розміром 1000000 (float)
+    startTime = clock();
+    for (int i = 0; i < iterations; i++) {
+        bubbleSort(arr_large_float, SIZE_LARGE);
+    }
+    endTime = clock();
+    double timeLargeFloat_bubble = double(endTime - startTime) / CLOCKS_PER_SEC / iterations;
+    std::cout << "Time taken for sorting array of size " << SIZE_LARGE << " (float) using Bubble Sort: " << timeLargeFloat_bubble << " seconds" << std::endl;
+
+    std::cout << "Shell Sort for arrays of float..." << std::endl;
+
+    // Сортування та вимірювання часу для масиву розміром 10 (float)
+    startTime = clock();
+    for (int i = 0; i < iterations; i++) {
+        shellSort(arr_small_float, SIZE_SMALL);
+    }
+    endTime = clock();
+    double timeSmallFloat_shell = double(endTime - startTime) / CLOCKS_PER_SEC / iterations;
+    std::cout << "Time taken for sorting array of size " << SIZE_SMALL << " (float) using Shell Sort: " << timeSmallFloat_shell << " seconds" << std::endl;
+
+    // Сортування та вимірювання часу для масиву розміром 1000000 (float)
+    startTime = clock();
+    for (int i = 0; i < iterations; i++) {
+        shellSort(arr_large_float, SIZE_LARGE);
+    }
+    endTime = clock();
+    double timeLargeFloat_shell = double(endTime - startTime) / CLOCKS_PER_SEC / iterations;
+    std::cout << "Time taken for sorting array of size " << SIZE_LARGE << " (float) using Shell Sort: " << timeLargeFloat_shell << " seconds" << std::endl;
 
     return 0;
 }
