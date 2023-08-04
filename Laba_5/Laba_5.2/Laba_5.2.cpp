@@ -12,26 +12,31 @@ int sum_of_digits(int num) {
 
 int main() {
     int size;
-    std::cout << "Enter array size: ";
+    std::cout << "Enter size arry: ";
     std::cin >> size;
 
     int* numbers = new int[size];
 
-    std::cout << "Enter numbers: ";
+    std::cout << "Enter the numbers: ";
     for (int i = 0; i < size; ++i) {
         std::cin >> numbers[i];
     }
 
+    bool found = false;
     for (int i = 0; i < size; ++i) {
         int num = numbers[i];
-        int sum_digits_num = sum_of_digits(num);
 
         for (int j = 0; j < size; ++j) {
-            if (i != j && sum_of_digits(numbers[j]) == sum_digits_num) {
-                std::cout << num << " has the same sum of digits as " << numbers[j] << std::endl;
+            if (i != j && sum_of_digits(numbers[j]) == num) {
+                std::cout << numbers[j] << " has a sum of digits equal to " << num << std::endl;
+                found = true;
                 break;
             }
         }
+    }
+
+    if (!found) {
+        std::cout << "There are no numbers in the array with sums of digits that match other numbers in the array." << std::endl;
     }
 
     // Звільнення пам'яті після використання
