@@ -1,5 +1,6 @@
 #include <iostream>
 
+
 int sum_of_digits(int num) {
     int sum_digits = 0;
     while (num > 0) {
@@ -24,28 +25,25 @@ void filter_numbers(const int* input_numbers, int size, int target_sum, int* fil
 }
 
 int main() {
+
     int size;
-    std::cout << "Enter size of the array: ";
+    std::cout << "Введите размер массива: ";
     std::cin >> size;
 
     int* numbers = new int[size];
 
-    std::cout << "Enter the numbers: ";
+    std::cout << "Введите числа: ";
     for (int i = 0; i < size; ++i) {
         std::cin >> numbers[i];
     }
 
-    int target_sum;
-    std::cout << "Enter a target sum: ";
-    std::cin >> target_sum;
-
-    int* filtered_numbers = new int[size]; // Assuming the filtered array won't be larger than the original array
+    int* filtered_numbers = new int[size]; // Предполагаем, что размер фильтрованного массива не будет больше исходного
     int filtered_size;
 
-    filter_numbers(numbers, size, target_sum, filtered_numbers, filtered_size);
+    filter_numbers(numbers, size, sum_of_digits(numbers[0]), filtered_numbers, filtered_size);
 
     if (filtered_size > 0) {
-        std::cout << "Numbers with a sum of digits equal to " << target_sum << ": ";
+        std::cout << "Числа, сумма цифр которых равна сумме цифр первого числа: ";
         for (int i = 0; i < filtered_size; ++i) {
             std::cout << filtered_numbers[i];
             if (i != filtered_size - 1) {
@@ -54,7 +52,7 @@ int main() {
         }
         std::cout << std::endl;
     } else {
-        std::cout << "No numbers with a sum of digits equal to " << target_sum << std::endl;
+        std::cout << "Нет чисел, сумма цифр которых равна сумме цифр первого числа." << std::endl;
     }
 
     delete[] numbers;
