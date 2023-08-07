@@ -1,9 +1,11 @@
 ﻿#include <iostream>
 #include <fstream>
 #include <cstdlib> // Для використання функції rand()
-#include <ctime>   // Для ініціалізації генератора випадкових чисел
+#include <ctime> // Для ініціалізації генератора випадкових чисел
+#include <locale>
 
 void generateBinaryFile(const char* filename, int num_elements) {
+    std::locale::global(std::locale("ru_RU"));
     std::ofstream file(filename, std::ios::binary);
 
     if (!file) {

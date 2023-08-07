@@ -1,31 +1,30 @@
 ﻿#include <cstdio>
+#include <locale>
 
 int main() {
+    std::locale::global(std::locale("ru_RU"));
+
     const char* inputFileName = "input.bin";
     const char* outputFileName = "output.hex";
 
-    // Відкриваємо вхідний файл у бінарному режимі для читання
-    FILE* inputFile = fopen(inputFileName, "rb");
-    if (!inputFile) {
+    FILE* inputFile;
+    if (fopen_s(&inputFile, inputFileName, "rb") != 0) {
         perror("Помилка відкриття вхідного файлу");
         return 1;
     }
 
-    // Відкриваємо вихідний файл у текстовому режимі для запису
-    FILE* outputFile = fopen(outputFileName, "w");
-    if (!outputFile) {
+    FILE* outputFile;
+    if (fopen_s(&outputFile, outputFileName, "w") != 0) {
         perror("Помилка відкриття вихідного файлу");
         fclose(inputFile);
         return 1;
     }
 
-    // Зчитуємо байти з вхідного файлу і записуємо їх у вихідний файл у шістнадцятковому форматі
     int byte;
     while ((byte = fgetc(inputFile)) != EOF) {
-        fprintf(outputFile, "%02X ", byte); // %02X - два символи, шістнадцяткове представлення байту
+        fprintf(outputFile, "%02X ", byte);
     }
 
-    // Закриваємо файли
     fclose(inputFile);
     fclose(outputFile);
 
