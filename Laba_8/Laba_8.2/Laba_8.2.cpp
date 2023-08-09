@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <locale>
+#include <cstdlib>
 
 int main() {
     std::locale::global(std::locale("ru_RU"));
