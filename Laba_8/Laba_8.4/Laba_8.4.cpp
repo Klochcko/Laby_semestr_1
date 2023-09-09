@@ -49,7 +49,7 @@ void addContactsToFile(std::ofstream& file, const std::vector<Contact>& newConta
     }
 }
 
-int main(){
+int main() {
 
     std::locale::global(std::locale("uk_UA"));
 
@@ -92,20 +92,26 @@ int main(){
     addContactsToFile(outputFile, newContacts);
 
     // Поиск и вывод контактов
-    std::string searchLastName;
-    std::cout << "Введите фамилию для поиска: ";
-    std::cin >> searchLastName;
+    while (true) {
+        std::string searchLastName;
+        std::cout << "Введите фамилию для поиска (или нажмите Enter, чтобы завершить): ";
+        std::cin >> searchLastName;
 
-    std::vector<Contact> foundContacts = searchAndSortByLastName(contacts, searchLastName);
+        if (searchLastName.empty()) {
+            break; // Завершаем цикл, если пользователь не ввел фамилию
+        }
 
-    // Вывод результатов поиска
-    if (foundContacts.empty()) {
-        std::cout << "Контактов с фамилией " << searchLastName << " не найдено.\n";
-    }
-    else {
-        std::cout << "Контакты с фамилией " << searchLastName << " (отсортированы по алфавиту):\n";
-        for (const Contact& contact : foundContacts) {
-            std::cout << contact << "\n";
+        std::vector<Contact> foundContacts = searchAndSortByLastName(contacts, searchLastName);
+
+        // Вывод результатов поиска
+        if (foundContacts.empty()) {
+            std::cout << "Контактов с фамилией " << searchLastName << " не найдено.\n";
+        }
+        else {
+            std::cout << "Контакты с фамилией " << searchLastName << " (отсортированы по алфавиту):\n";
+            for (const Contact& contact : foundContacts) {
+                std::cout << contact << "\n";
+            }
         }
     }
 
