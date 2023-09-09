@@ -4,7 +4,6 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
-#include <locale>
 
 struct Contact {
     std::string lastName;
@@ -25,7 +24,7 @@ struct Contact {
     }
 };
 
-// Функция для поиска номеров телефонов по фамилии и сортировки результатов по алфавиту
+// Функция для поиска номеров телефонов по фамилии и сортировки результатов по алфавиту имени
 std::vector<Contact> searchAndSortByLastName(const std::vector<Contact>& contacts, const std::string& lastName) {
     std::vector<Contact> foundContacts;
 
@@ -35,8 +34,9 @@ std::vector<Contact> searchAndSortByLastName(const std::vector<Contact>& contact
         }
     }
 
+    // Сортировка по алфавиту имени
     std::sort(foundContacts.begin(), foundContacts.end(), [](const Contact& a, const Contact& b) {
-        return a.lastName < b.lastName;
+        return a.firstName < b.firstName;
         });
 
     return foundContacts;
@@ -50,9 +50,6 @@ void addContactsToFile(std::ofstream& file, const std::vector<Contact>& newConta
 }
 
 int main() {
-
-    std::locale::global(std::locale("uk_UA"));
-
     // Открытие файла для чтения и записи
     std::ifstream inputFile("contacts.txt");
     std::ofstream outputFile("contacts.txt", std::ios::app); // Режим добавления в файл
@@ -108,7 +105,7 @@ int main() {
             std::cout << "Контактов с фамилией " << searchLastName << " не найдено.\n";
         }
         else {
-            std::cout << "Контакты с фамилией " << searchLastName << " (отсортированы по алфавиту):\n";
+            std::cout << "Контакты с фамилией " << searchLastName << " (отсортированы по алфавиту имени):\n";
             for (const Contact& contact : foundContacts) {
                 std::cout << contact << "\n";
             }
