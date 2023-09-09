@@ -4,7 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
-#include<locale>
+#include <locale>
 
 struct Contact {
     std::string lastName;
@@ -12,14 +12,20 @@ struct Contact {
     std::string phoneNumber;
     std::string birthDate;
 
-    // Перевантаження оператора виведення для виводу контакту
+    // Перегрузка оператора вывода для вывода контакта
     friend std::ostream& operator<<(std::ostream& os, const Contact& contact) {
         os << contact.lastName << " " << contact.firstName << " " << contact.phoneNumber << " " << contact.birthDate;
         return os;
     }
+
+    // Перегрузка оператора ввода для ввода контакта
+    friend std::istream& operator>>(std::istream& is, Contact& contact) {
+        is >> contact.lastName >> contact.firstName >> contact.phoneNumber >> contact.birthDate;
+        return is;
+    }
 };
 
-// Функція для пошуку номерів телефонів за заданим прізвищем та сортування результатів за абеткою
+// Функция для поиска номеров телефонов по фамилии и сортировки результатов по алфавиту
 std::vector<Contact> searchAndSortByLastName(const std::vector<Contact>& contacts, const std::string& lastName) {
     std::vector<Contact> foundContacts;
 
@@ -36,59 +42,36 @@ std::vector<Contact> searchAndSortByLastName(const std::vector<Contact>& contact
     return foundContacts;
 }
 
-// Функція для додавання нових записів до файлу
+// Функция для добавления новых записей в файл
 void addContactsToFile(std::ofstream& file, const std::vector<Contact>& newContacts) {
     for (const Contact& newContact : newContacts) {
-        file << newContact.lastName << " "
-            << newContact.firstName << " "
-            << newContact.phoneNumber << " "
-            << newContact.birthDate << "\n";
+        file << newContact << "\n";
     }
 }
 
-int main() {
+int main(){
 
-    std::locale::global(std::locale("uk_UA."));
+    std::locale::global(std::locale("uk_UA"));
 
-    // Відкриття файлу для зчитування та запису
+    // Открытие файла для чтения и записи
     std::ifstream inputFile("contacts.txt");
-    std::ofstream outputFile("contacts.txt", std::ios::app); // Режим додавання до файлу
+    std::ofstream outputFile("contacts.txt", std::ios::app); // Режим добавления в файл
 
     if (!inputFile || !outputFile) {
-        std::cout << "Помилка при відкритті файлу.\n";
+        std::cout << "Ошибка при открытии файла.\n";
         return 1;
     }
 
-    // Зчитування контактів з файлу
+    // Чтение контактов из файла
     std::vector<Contact> contacts;
     Contact contact;
 
-    while (inputFile >> contact.lastName >> contact.firstName >> contact.phoneNumber >> contact.birthDate) {
+    while (inputFile >> contact) {
         contacts.push_back(contact);
     }
 
-    // Пошук та виведення контактів
-    std::string searchLastName;
-    std::cout << "Введіть фамілію для пошуку: ";
-    std::cin >> searchLastName;
-
-    std::vector<Contact> foundContacts = searchAndSortByLastName(contacts, searchLastName);
-
-    // Виведення результатів пошуку
-    if (foundContacts.empty()) {
-        std::cout << "Записів з фамілією " << searchLastName << " не знайдено.\n";
-    }
-    else {
-        std::cout << "Контакти з фамілією " << searchLastName << " (відсортовані за абеткою):\n";
-        for (const Contact& contact : foundContacts) {
-            std::cout << contact << "\n";
-        }
-    }
-
-    // Додавання нових контактів до файлу
-    std::cout << "Введіть нові контакти (прізвище ім'я номер телефону дата народження), або натисніть Enter, щоб завершити:\n";
-    std::cin.ignore(); // Очищення буфера введення
-
+    // Добавление новых контактов в файл
+    std::cout << "Введите новые контакты (фамилия имя номер_телефона дата_рождения), или нажмите Enter, чтобы завершить:\n";
     std::vector<Contact> newContacts;
     std::string input;
 
@@ -99,16 +82,34 @@ int main() {
             break;
         }
 
-        Contact newContact;
         std::istringstream iss(input);
-        iss >> newContact.lastName >> newContact.firstName >> newContact.phoneNumber >> newContact.birthDate;
+        Contact newContact;
+        iss >> newContact;
 
         newContacts.push_back(newContact);
     }
 
     addContactsToFile(outputFile, newContacts);
 
-    // Закриття файлів
+    // Поиск и вывод контактов
+    std::string searchLastName;
+    std::cout << "Введите фамилию для поиска: ";
+    std::cin >> searchLastName;
+
+    std::vector<Contact> foundContacts = searchAndSortByLastName(contacts, searchLastName);
+
+    // Вывод результатов поиска
+    if (foundContacts.empty()) {
+        std::cout << "Контактов с фамилией " << searchLastName << " не найдено.\n";
+    }
+    else {
+        std::cout << "Контакты с фамилией " << searchLastName << " (отсортированы по алфавиту):\n";
+        for (const Contact& contact : foundContacts) {
+            std::cout << contact << "\n";
+        }
+    }
+
+    // Закрытие файлов
     inputFile.close();
     outputFile.close();
 
