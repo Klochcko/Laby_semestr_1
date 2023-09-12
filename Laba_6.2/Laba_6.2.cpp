@@ -70,18 +70,9 @@ int main() {
         std::cin >> company.employees[i].hireDate;
         std::cout << "Образование (высшее, среднее): ";
         std::cin >> company.employees[i].education;
-
-        if (company.employees[i].education == "среднее") {
-            company.employees[i].salary -= company.employees[i].salary / 10;
-        }
     }
 
     int averageSalary = company.calculateAverageSalary();
-    for (auto& employee : company.employees) {
-        if (employee.education == "среднее") {
-            employee.salary -= employee.salary / 10;
-        }
-    }
 
     std::cout << "Информация о сотрудниках:" << std::endl;
     for (const auto& employee : company.employees) {
@@ -107,4 +98,3 @@ int main() {
 
     return 0;
 }
-
