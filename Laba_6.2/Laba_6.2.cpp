@@ -39,6 +39,16 @@ struct Company {
         }
         return employees.empty() ? 0 : totalSalary / employees.size();
     }
+
+    void decreaseSalaryForNonDegreeEmployees(const std::string& targetPosition, bool allowDecrease) {
+        for (auto& employee : employees) {
+            if (employee.education != "высшее" && employee.position == targetPosition) {
+                if (allowDecrease) {
+                    employee.salary -= employee.salary / 10;
+                }
+            }
+        }
+    }
 };
 
 int main() {
@@ -82,19 +92,27 @@ int main() {
             << employee.hireDate << ", Образование: " << employee.education << std::endl;
     }
 
-    std::cout << std::endl << "Сотрудники с зарплатой на 25% выше средней и возрастом до 25 лет:" << std::endl;
-    bool foundEmployees = false;
+    std::string targetPosition;
+    std::cout << "Введите целевую должность для уменьшения зарплаты: ";
+    std::cin >> targetPosition;
+
+    bool allowDecrease;
+    std::cout << "Разрешить уменьшение зарплаты? (1 - да, 0 - нет): ";
+    std::cin >> allowDecrease;
+
+    company.decreaseSalaryForNonDegreeEmployees(targetPosition, allowDecrease);
+
+    std::cout << "Информация о сотрудниках после изменений:" << std::endl;
     for (const auto& employee : company.employees) {
-        int age = employee.calculateAge();
-        if (employee.salary > averageSalary * 1.25 && age <= 25) {
-            std::cout << employee.lastName << " " << employee.firstName << " " << employee.middleName
-                << ", Зарплата: " << employee.salary << ", Возраст: " << age << " лет" << std::endl;
-            foundEmployees = true;
-        }
+        std::cout << employee.lastName << " " << employee.firstName << " " << employee.middleName
+            << ", Должность: " << employee.position << ", Зарплата: " << employee.salary
+            << ", Дата рождения: " << employee.dateOfBirth << ", Дата принятия на работу: "
+            << employee.hireDate << ", Образование: " << employee.education << std::endl;
     }
-    if (!foundEmployees) {
-        std::cout << "Нет сотрудников, удовлетворяющих указанным условиям." << std::endl;
-    }
+
+    int newAverageSalary = company.calculateAverageSalary();
+    int salaryIncrease = newAverageSalary - averageSalary;
+    std::cout << "Фонд заробітної платні збільшився на: " << salaryIncrease << std::endl;
 
     return 0;
 }
