@@ -39,16 +39,6 @@ struct Company {
         }
         return employees.empty() ? 0 : totalSalary / employees.size();
     }
-
-    void decreaseSalaryForNonDegreeEmployees(const std::string& targetPosition, bool allowDecrease) {
-        for (auto& employee : employees) {
-            if (employee.education != "высшее" && employee.position == targetPosition) {
-                if (allowDecrease) {
-                    employee.salary -= employee.salary / 10;
-                }
-            }
-        }
-    }
 };
 
 int main() {
@@ -90,17 +80,24 @@ int main() {
             << ", Должность: " << employee.position << ", Зарплата: " << employee.salary
             << ", Дата рождения: " << employee.dateOfBirth << ", Дата принятия на работу: "
             << employee.hireDate << ", Образование: " << employee.education << std::endl;
+
+        std::string allowDecrease;
+        std::cout << "Разрешить уменьшение зарплаты для этого сотрудника? (да/нет): ";
+        std::cin >> allowDecrease;
+
+        if (allowDecrease == "да") {
+            int employeeIndex;
+            std::cout << "Введите индекс сотрудника для уменьшения зарплаты: ";
+            std::cin >> employeeIndex;
+
+            if (employeeIndex >= 0 && employeeIndex < numEmployees) {
+                company.employees[employeeIndex].salary -= company.employees[employeeIndex].salary / 10;
+            }
+            else {
+                std::cout << "Неверный индекс сотрудника." << std::endl;
+            }
+        }
     }
-
-    std::string targetPosition;
-    std::cout << "Введите целевую должность для уменьшения зарплаты: ";
-    std::cin >> targetPosition;
-
-    bool allowDecrease;
-    std::cout << "Разрешить уменьшение зарплаты? (1 - да, 0 - нет): ";
-    std::cin >> allowDecrease;
-
-    company.decreaseSalaryForNonDegreeEmployees(targetPosition, allowDecrease);
 
     std::cout << "Информация о сотрудниках после изменений:" << std::endl;
     for (const auto& employee : company.employees) {
