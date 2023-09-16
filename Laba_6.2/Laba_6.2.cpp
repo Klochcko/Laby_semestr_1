@@ -3,6 +3,7 @@
 #include <vector>
 #include <locale>
 
+// Структура, що представляє співробітника 1
 struct Employee {
     std::string lastName;
     std::string firstName;
@@ -13,6 +14,7 @@ struct Employee {
     std::string hireDate;
     std::string education;
 
+    // Функція для розрахунку віку співробітника на основі дати народження
     int calculateAge() const {
         int birthDay, birthMonth, birthYear;
         sscanf_s(dateOfBirth.c_str(), "%d-%d-%d", &birthDay, &birthMonth, &birthYear);
@@ -29,9 +31,11 @@ struct Employee {
     }
 };
 
+// Структура, що представляє компанію та її співробітників
 struct Company {
     std::vector<Employee> employees;
 
+    // Функція для розрахунку середньої зарплати співробітників на підприємстві 3
     int calculateAverageSalary() const {
         int totalSalary = 0;
         for (const auto& employee : employees) {
@@ -39,9 +43,25 @@ struct Company {
         }
         return employees.empty() ? 0 : totalSalary / employees.size();
     }
+
+    // Функція для зменшення зарплати для співробітників з відповідними умовами
+    void decreaseSalaryForAllMatchingConditions() {
+        for (int i = 0; i < employees.size(); i++) {
+            if (employees[i].education != "высшее" && employees[i].position == "ваша_посада") {
+                std::string allowDecrease;
+                std::cout << "Разрешить уменьшение зарплаты для сотрудника " << i + 1 << "? (да/нет): ";
+                std::cin >> allowDecrease;
+
+                if (allowDecrease == "да") {
+                    employees[i].salary -= employees[i].salary / 10;
+                }
+            }
+        }
+    }
 };
 
 int main() {
+    // Налаштування локалізації для введення/виведення російською мовою
     std::locale::global(std::locale("ru_RU"));
 
     Company company;
@@ -51,7 +71,7 @@ int main() {
     std::cin >> numEmployees;
 
     company.employees.resize(numEmployees);
-
+    // 2
     for (int i = 0; i < numEmployees; i++) {
         std::cout << "Сотрудник " << i + 1 << ":" << std::endl;
         std::cout << "Фамилия: ";
@@ -70,46 +90,39 @@ int main() {
         std::cin >> company.employees[i].hireDate;
         std::cout << "Образование (высшее, среднее): ";
         std::cin >> company.employees[i].education;
+
+        // Зменшення зарплати на 10% для співробітників зі середнім освітнім рівнем 4
+        if (company.employees[i].education == "среднее") {
+            company.employees[i].salary -= company.employees[i].salary / 10;
+        }
     }
 
     int averageSalary = company.calculateAverageSalary();
 
+    // Виклик функції для зменшення зарплати для відповідних співробітників
+    company.decreaseSalaryForAllMatchingConditions();
+
+    // Виведення інформації про всіх співробітників
     std::cout << "Информация о сотрудниках:" << std::endl;
     for (const auto& employee : company.employees) {
         std::cout << employee.lastName << " " << employee.firstName << " " << employee.middleName
             << ", Должность: " << employee.position << ", Зарплата: " << employee.salary
             << ", Дата рождения: " << employee.dateOfBirth << ", Дата принятия на работу: "
             << employee.hireDate << ", Образование: " << employee.education << std::endl;
-
-        std::string allowDecrease;
-        std::cout << "Разрешить уменьшение зарплаты для этого сотрудника? (да/нет): ";
-        std::cin >> allowDecrease;
-
-        if (allowDecrease == "да") {
-            int employeeIndex;
-            std::cout << "Введите индекс сотрудника для уменьшения зарплаты: ";
-            std::cin >> employeeIndex;
-
-            if (employeeIndex >= 0 && employeeIndex < numEmployees) {
-                company.employees[employeeIndex].salary -= company.employees[employeeIndex].salary / 10;
-            }
-            else {
-                std::cout << "Неверный индекс сотрудника." << std::endl;
-            }
-        }
     }
 
-    std::cout << "Информация о сотрудниках после изменений:" << std::endl;
+    // Розрахунок різниці між фондами зарплати до та після зменшення 5,6
+    int totalSalaryBefore = 0;
     for (const auto& employee : company.employees) {
-        std::cout << employee.lastName << " " << employee.firstName << " " << employee.middleName
-            << ", Должность: " << employee.position << ", Зарплата: " << employee.salary
-            << ", Дата рождения: " << employee.dateOfBirth << ", Дата принятия на работу: "
-            << employee.hireDate << ", Образование: " << employee.education << std::endl;
+        totalSalaryBefore += employee.salary;
     }
 
-    int newAverageSalary = company.calculateAverageSalary();
-    int salaryIncrease = newAverageSalary - averageSalary;
-    std::cout << "Фонд заробітної платні збільшився на: " << salaryIncrease << std::endl;
+    int totalSalaryAfter = 0;
+    for (const auto& employee : company.employees) {
+        totalSalaryAfter += employee.salary;
+    }
+    int salaryDifference = totalSalaryAfter - totalSalaryBefore;
+    std::cout << "Збільшення фонду заробітної платні: " << salaryDifference << std::endl;
 
     return 0;
 }
