@@ -2,6 +2,7 @@
 #include <locale>
 #include <vector>
 
+// Функция для вычисления суммы цифр числа
 int sum_of_digits(int num) {
     int sum_digits = 0;
     while (num > 0) {
@@ -28,11 +29,10 @@ int main() {
     std::vector<int> filtered_numbers;
 
     for (int i = 0; i < size; ++i) {
-        int current_sum = sum_of_digits(numbers[i]);
         bool found = false;
 
         for (int j = 0; j < size; ++j) {
-            if (i != j && current_sum == numbers[j]) {
+            if (i != j && sum_of_digits(numbers[i]) == sum_of_digits(numbers[j])) {
                 found = true;
                 break;
             }
