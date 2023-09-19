@@ -1,8 +1,8 @@
 #include <iostream>
-#include <locale>
 #include <vector>
+#include <locale>
 
-// Функция для вычисления суммы цифр числа
+// Функція для обчислення суми цифр числа
 int sum_of_digits(int num) {
     int sum_digits = 0;
     while (num > 0) {
@@ -10,6 +10,29 @@ int sum_of_digits(int num) {
         num /= 10;
     }
     return sum_digits;
+}
+
+// Функція для вибору чисел, сума цифр яких рівна сумі цифр інших чисел 1,2
+std::vector<int> find_numbers_with_equal_digit_sums(const std::vector<int>& numbers) {
+    std::vector<int> result;
+    int size = numbers.size();
+
+    for (int i = 0; i < size; ++i) {
+        bool found = false;
+
+        for (int j = 0; j < size; ++j) {
+            if (i != j && sum_of_digits(numbers[i]) == sum_of_digits(numbers[j])) {
+                found = true;
+                break;
+            }
+        }
+
+        if (found) {
+            result.push_back(numbers[i]);
+        }
+    }
+
+    return result;
 }
 
 int main() {
@@ -26,22 +49,7 @@ int main() {
         std::cin >> numbers[i];
     }
 
-    std::vector<int> filtered_numbers;
-
-    for (int i = 0; i < size; ++i) {
-        bool found = false;
-
-        for (int j = 0; j < size; ++j) {
-            if (i != j && sum_of_digits(numbers[i]) == sum_of_digits(numbers[j])) {
-                found = true;
-                break;
-            }
-        }
-
-        if (found) {
-            filtered_numbers.push_back(numbers[i]);
-        }
-    }
+    std::vector<int> filtered_numbers = find_numbers_with_equal_digit_sums(numbers);
 
     if (!filtered_numbers.empty()) {
         std::cout << "Числа, сумма цифр которых равна другим числам в массиве: ";
