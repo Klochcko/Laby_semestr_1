@@ -18,22 +18,17 @@ std::vector<int> find_numbers_with_equal_digit_sums(const std::vector<int>& numb
     int size = numbers.size();
 
     for (int i = 0; i < size; ++i) {
-        bool found = false;
-
         for (int j = 0; j < size; ++j) {
-            if (i != j && sum_of_digits(numbers[i]) == sum_of_digits(numbers[j])) {
-                found = true;
-                break;
+            if (i != j && numbers[i] == sum_of_digits(numbers[j])) {
+                result.push_back(numbers[i]);
+                break;  // Прерываем цикл, так как нашли подходящее число
             }
-        }
-
-        if (found) {
-            result.push_back(numbers[i]);
         }
     }
 
     return result;
 }
+
 
 int main() {
     std::locale::global(std::locale("ru_RU"));
