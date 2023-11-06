@@ -36,25 +36,71 @@ public:
 
     // Вивести купу на екран
     void print();
+
+    void heapify(std::vector<int>& arr, int n, int i);
+
+private:
+    std::vector<int> elements;
 };
 
 void Heap::insert(int value) {
-    // Додавання елемента до купи
-}
+    elements.push_back(value); // Додаємо новий елемент в купу
+    int i = elements.size() - 1;
 
-void Heap::sort() {
-    // Пірамідальне сортування
+    // Відновлюємо властивості піраміди вгору
+    while (i > 0) {
+        int parent = (i - 1) / 2;
+        if (elements[i] <= elements[parent]) {
+            break; // Властивості піраміди відновлені
+        }
+        std::swap(elements[i], elements[parent]);
+        i = parent;
+    }
 }
 
 void Heap::print() {
-    // Виведення купи на екран
+    for (int value : elements) {
+        std::cout << value << " ";
+    }
+    std::cout << std::endl;
+}
+
+void Heap::heapify(std::vector<int>& arr, int n, int i) {
+    int largest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
+
+    if (left < n && arr[left] > arr[largest]) {
+        largest = left;
+    }
+
+    if (right < n && arr[right] > arr[largest]) {
+        largest = right;
+    }
+
+    if (largest != i) {
+        std::swap(arr[i], arr[largest]);
+        heapify(arr, n, largest);
+    }
+}
+
+void Heap::sort() {
+    int n = elements.size();
+
+    // Будуємо максимальну піраміду
+    for (int i = n / 2 - 1; i >= 0; i--) {
+        heapify(elements, n, i);
+    }
+
+    // Виділяємо найбільший елемент із піраміди та розміщуємо його в кінці масиву
+    for (int i = n - 1; i >= 0; i--) {
+        std::swap(elements[0], elements[i]);
+        heapify(elements, i, 0);
+    }
 }
 
 class WeatherJournal {
 public:
-
-    std::vector<WeatherEntry> entries;
-
     void addEntry(const WeatherEntry& entry) {
         entries.push_back(entry);
     }
@@ -110,6 +156,9 @@ public:
             std::cout << "Немає даних про опади для року " << inputYear << std::endl;
         }
     }
+
+private:
+    std::vector<WeatherEntry> entries;
 };
 
 int main() {
@@ -130,7 +179,7 @@ int main() {
     weatherJournal.printRainyMonths(inputYear);
 
     // Пірамідальне сортування записів погоди
-    Heap heap; // Створюємо об'єкт класу купи
+    Heap heap;
 
     // Додавання елементів в купу для сортування
     heap.insert(5);
