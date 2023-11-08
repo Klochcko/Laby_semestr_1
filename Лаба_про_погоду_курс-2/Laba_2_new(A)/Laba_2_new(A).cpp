@@ -1,30 +1,32 @@
 ﻿#include <iostream>
-#include <map>
 #include <string>
-#include <algorithm>
+
+class Machine {
+public:
+    int inventoryNumber;
+    std::string name;
+    std::string type;
+    double downtime;
+    double workTime;
+
+    Machine(int inventoryNumber, const std::string& name, const std::string& type, double downtime, double workTime)
+        : inventoryNumber(inventoryNumber), name(name), type(type), downtime(downtime), workTime(workTime) {
+    }
+};
 
 class BTree {
     struct BNode {
-        int* keys;  // Ключі, які зберігаються в вузлі
-        BNode** children;  // Вказівники на дочірні вузли
-        int keyCount;  // Кількість ключів в вузлі
-        bool isLeaf;  // Чи є вузол листком
+        int* keys;
+        BNode** children;
+        int keyCount;
+        bool isLeaf;
     };
 
-    BNode* root;  // Корінь дерева
-    int t;  // Мінімальна кількість ключів у вузлі (degree)
+    BNode* root;
+    int t;
 
 public:
-    struct Machine {
-        int inventoryNumber;
-        std::string name;
-        std::string type;
-        double downtime; // час перестою в годинах
-        double workTime;  // час роботи в годинах за місяць
-    };
-
     BTree(int degree) : root(nullptr), t(degree) {
-        // Ініціалізація конструктора B-дерева
         root = new BNode();
         root->isLeaf = true;
         root->keys = new int[2 * t - 1];
@@ -52,8 +54,12 @@ public:
             RemoveKey(root, key);
         }
         else {
-            std::cout << "Ключ " << key << " не знайдено у B-дереві." << std::endl;
+            std::cout << "Key " << key << " not found in the B-tree." << std::endl;
         }
+    }
+
+    void DisplayStructure() {
+        DisplayStructure(root, "", true);
     }
 
 private:
@@ -132,29 +138,38 @@ private:
     void SplitChild(BNode* parentNode, int childIndex, BNode* childNode) {
         BNode* newNode = new BNode();
         BNode* rightNode = childNode;
-        parentNode->children[parentNode->keyCount + 1] = nullptr;
-        for (int i = parentNode->keyCount; i >= childIndex + 1; i--) {
-            parentNode->children[i + 1] = parentNode->children[i];
+
+        for (int i = t - 1; i >= 0; i--) {
+            newNode->keys[i] = rightNode->keys[i + t];
         }
-        parentNode->children[childIndex + 1] = newNode;
-        for (int i = parentNode->keyCount - 1; i >= childIndex; i--) {
-            parentNode->keys[i + 1] = parentNode->keys[i];
+
+        if (!rightNode->isLeaf) {
+            for (int i = t; i >= 0; i--) {
+                newNode->children[i] = rightNode->children[i + t];
+            }
         }
+
+        for (int i = parentNode->keyCount; i > childIndex; i--) {
+            parentNode->keys[i] = parentNode->keys[i - 1];
+        }
+
         parentNode->keys[childIndex] = rightNode->keys[t - 1];
         parentNode->keyCount++;
 
-        newNode->isLeaf = rightNode->isLeaf;
-        newNode->keyCount = t - 1;
-        for (int i = 0; i < t - 1; i++) {
-            newNode->keys[i] = rightNode->keys[i + t];
+        for (int i = parentNode->keyCount; i > childIndex; i--) {
+            parentNode->children[i] = parentNode->children[i - 1];
         }
-        if (!rightNode->isLeaf) {
-            for (int i = 0; i < t; i++) {
-                newNode->children[i] = rightNode->children[i + t];
-                rightNode->children[i + t] = nullptr;
-            }
-        }
+
+        parentNode->children[childIndex + 1] = newNode;
+        parentNode->children[childIndex] = rightNode;
+
         rightNode->keyCount = t - 1;
+
+        for (int i = childIndex; i < parentNode->keyCount; i++) {
+            parentNode->keys[i] = parentNode->keys[i + 1];
+        }
+
+        parentNode->keyCount--;
     }
 
     void DestroyTree(BNode* node) {
@@ -173,43 +188,52 @@ private:
             std::cout << prefix;
             if (isTail) {
                 std::cout << "└── ";
-                prefix += "    ";
+                prefix = prefix.substr(0, prefix.length() - 4) + "    ";
             }
             else {
                 std::cout << "├── ";
                 prefix += "│   ";
             }
 
-            for (int i = 0; i < node->keyCount; i++) {
-                std::cout << node->keys[i] << std::endl;
-                DisplayStructure(node->children[i], prefix, false);
+            if (!node->isLeaf) {
+                for (int i = 0; i < node->keyCount; i++) {
+                    std::cout << node->keys[i] << std::endl;
+                    DisplayStructure(node->children[i], prefix, false);
+                }
+                DisplayStructure(node->children[node->keyCount], prefix, true);
             }
-            DisplayStructure(node->children[node->keyCount], prefix, true);
+            else {
+                for (int i = 0; i < node->keyCount; i++) {
+                    std::cout << node->keys[i] << std::endl;
+                }
+            }
         }
     }
+
+
 };
 
 int main() {
-    // Створення масиву для зберігання даних про верстати
-    BTree::Machine machines[3];
+    BTree machineBTree(2);
 
-    // Додавання даних про верстати
-    machines[0] = { 1, "Machine A", "Type 1", 10.0, 200.0 };
-    machines[1] = { 2, "Machine B", "Type 2", 5.0, 180.0 };
-    machines[2] = { 3, "Machine C", "Type 1", 15.0, 220.0 };
+    Machine machine1(1, "Machine A", "Type 1", 10.0, 200.0);
+    Machine machine2(2, "Machine B", "Type 2", 5.0, 180.0);
+    Machine machine3(3, "Machine C", "Type 1", 15.0, 220.0);
 
-    // Визначення типу верстатів, який використовується найбільше
-    std::map<std::string, int> typeCount;
-    std::string mostUsedType;
+    machineBTree.Insert(machine1.inventoryNumber, &machine1);
+    machineBTree.Insert(machine2.inventoryNumber, &machine2);
+    machineBTree.Insert(machine3.inventoryNumber, &machine3);
 
-    for (int i = 0; i < 3; i++) {
-        typeCount[machines[i].type]++;
-        if (typeCount[machines[i].type] > typeCount[mostUsedType]) {
-            mostUsedType = machines[i].type;
-        }
+    int searchKey = 2;
+    if (machineBTree.Search(searchKey)) {
+        std::cout << "Key " << searchKey << " found in the B-tree." << std::endl;
+        machineBTree.Remove(searchKey);
+    }
+    else {
+        std::cout << "Key " << searchKey << " not found in the B-tree." << std::endl;
     }
 
-    std::cout << "Тип верстатів, який використовується найбільше: " << mostUsedType << std::endl;
+    machineBTree.DisplayStructure();
 
     return 0;
 }
