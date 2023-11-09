@@ -1,13 +1,15 @@
 ﻿#include <iostream>
+#include <map>
 #include <string>
+#include <iomanip>
 
 class Machine {
 public:
     int inventoryNumber;
     std::string name;
     std::string type;
-    double downtime;
-    double workTime;
+    double downtime; // час перестою в годинах
+    double workTime;  // час роботи в годинах за місяць
 
     Machine(int inventoryNumber, const std::string& name, const std::string& type, double downtime, double workTime)
         : inventoryNumber(inventoryNumber), name(name), type(type), downtime(downtime), workTime(workTime) {
@@ -16,17 +18,18 @@ public:
 
 class BTree {
     struct BNode {
-        int* keys;
-        BNode** children;
-        int keyCount;
-        bool isLeaf;
+        int* keys;  // Ключі, які зберігаються в вузлі
+        BNode** children;  // Вказівники на дочірні вузли
+        int keyCount;  // Кількість ключів в вузлі
+        bool isLeaf;  // Чи є вузол листком
     };
 
-    BNode* root;
-    int t;
+    BNode* root;  // Корінь дерева
+    int t;  // Мінімальна кількість ключів у вузлі (degree)
 
 public:
     BTree(int degree) : root(nullptr), t(degree) {
+        // Ініціалізація конструктора B-дерева
         root = new BNode();
         root->isLeaf = true;
         root->keys = new int[2 * t - 1];
@@ -37,6 +40,7 @@ public:
     void Insert(int key, Machine* machine) {
         if (root->keyCount == (2 * t - 1)) {
             BNode* newRoot = new BNode();
+            newRoot->children = new BNode * [2 * t];  // Додайте цей рядок
             newRoot->children[0] = root;
             SplitChild(newRoot, 0, root);
             root = newRoot;
@@ -60,6 +64,26 @@ public:
 
     void DisplayStructure() {
         DisplayStructure(root, "", true);
+    }
+
+    void SearchByInventoryNumber(int key) {
+        Machine* machine = SearchByInventoryNumber(root, key);
+        if (machine != nullptr) {
+            std::cout << "Information about the machine with inventory number " << key << ":" << std::endl;
+            std::cout << "Name: " << machine->name << std::endl;
+            std::cout << "Type: " << machine->type << std::endl;
+            double percentDowntime = (machine->downtime / machine->workTime) * 100;
+            std::cout << "The percentage of downtime for the last month: " << std::fixed << std::setprecision(2) << percentDowntime << "%" << std::endl;
+        }
+        else {
+            std::cout << "Machine with inventory number " << key << " not found." << std::endl;
+        }
+    }
+
+    std::string MostUsedMachineType() {
+        std::map<std::string, int> typeCount;
+        CountMachineTypes(root, typeCount);
+        return FindMostUsedType(typeCount);
     }
 
 private:
@@ -195,27 +219,91 @@ private:
                 prefix += "│   ";
             }
 
-            if (!node->isLeaf) {
-                for (int i = 0; i < node->keyCount; i++) {
-                    std::cout << node->keys[i] << std::endl;
+            for (int i = 0; i < node->keyCount; i++) {
+                // Добавляем проверку на нулевой указатель
+                if (node->children[i] != nullptr) {
+                    Machine* machine = GetMachineDetails(node, i);
+                    std::cout << "Key: " << node->keys[i] << ", Name: " << machine->name << ", Type: " << machine->type << std::endl;
                     DisplayStructure(node->children[i], prefix, false);
                 }
-                DisplayStructure(node->children[node->keyCount], prefix, true);
             }
-            else {
-                for (int i = 0; i < node->keyCount; i++) {
-                    std::cout << node->keys[i] << std::endl;
-                }
+            // Добавляем проверку на нулевой указатель перед рекурсивным вызовом
+            if (node->keyCount > 0 && node->children[node->keyCount] != nullptr) {
+                Machine* lastMachine = GetMachineDetails(node, node->keyCount - 1);
+                std::cout << "Key: " << node->keys[node->keyCount - 1] << ", Name: " << lastMachine->name << ", Type: " << lastMachine->type << std::endl;
+                DisplayStructure(node->children[node->keyCount], prefix, true);
             }
         }
     }
 
+    Machine* SearchByInventoryNumber(BNode* node, int key) {
+        int i = 0;
+        while (i < node->keyCount && key > node->keys[i]) {
+            i++;
+        }
+        if (i < node->keyCount && key == node->keys[i]) {
+            return GetMachineDetails(node, i);
+        }
+        else if (node->isLeaf) {
+            return nullptr;
+        }
+        else {
+            return SearchByInventoryNumber(node->children[i], key);
+        }
+    }
+
+    Machine* GetMachineDetails(BNode* node, int index) {
+        if (node == nullptr || index < 0 || index >= node->keyCount) {
+            // Возвращаем nullptr, если у нас нет доступной информации о верстате
+            return nullptr;
+        }
+
+        if (node->isLeaf) {
+            // Если узел - лист, возвращаем информацию о верстате
+            if (index < node->keyCount) {
+                return GetMachineDetails(node->children[index], 0);
+            }
+        }
+        else {
+            // Если узел не является листом, рекурсивно вызываем для дочернего узла
+            if (index < node->keyCount) {
+                return GetMachineDetails(node->children[index], 0);
+            }
+        }
+
+        // Повертаємо nullptr як захист від непередбачуваного стану
+        return nullptr;
+    }
+
+    void CountMachineTypes(BNode* node, std::map<std::string, int>& typeCount) {
+        // Реалізація підрахунку кількості використань кожного типу верстата
+        for (int i = 0; i < node->keyCount; i++) {
+            Machine* machine = GetMachineDetails(node, i);
+            std::string type = machine->type;
+            typeCount[type]++;
+        }
+    }
+
+    std::string FindMostUsedType(const std::map<std::string, int>& typeCount) {
+        // Реалізація визначення типу верстата, який використовується найбільше
+        std::string mostUsedType;
+        int maxCount = 0;
+        for (const auto& pair : typeCount) {
+            if (pair.second > maxCount) {
+                maxCount = pair.second;
+                mostUsedType = pair.first;
+            }
+        }
+        return mostUsedType;
+    }
 
 };
 
 int main() {
+    // Створення B-дерева з параметром ступеня 2
     BTree machineBTree(2);
 
+    // Додавання даних про верстати
     Machine machine1(1, "Machine A", "Type 1", 10.0, 200.0);
     Machine machine2(2, "Machine B", "Type 2", 5.0, 180.0);
     Machine machine3(3, "Machine C", "Type 1", 15.0, 220.0);
@@ -224,7 +312,8 @@ int main() {
     machineBTree.Insert(machine2.inventoryNumber, &machine2);
     machineBTree.Insert(machine3.inventoryNumber, &machine3);
 
-    int searchKey = 2;
+    // Пошук та видалення з використанням B-дерева
+    int searchKey = 2;  // Змініть на ключ, який вас цікавить
     if (machineBTree.Search(searchKey)) {
         std::cout << "Key " << searchKey << " found in the B-tree." << std::endl;
         machineBTree.Remove(searchKey);
@@ -233,7 +322,18 @@ int main() {
         std::cout << "Key " << searchKey << " not found in the B-tree." << std::endl;
     }
 
+    // Відображення структури B-дерева
     machineBTree.DisplayStructure();
+
+    // Пошук інформації про верстат за інвентарним номером
+    int searchInventoryNumber = 1;  // Змініть на інвентарний номер, який вас цікавить
+    machineBTree.SearchByInventoryNumber(searchInventoryNumber);
+
+    // Визначення типу верстатів, який використовується найбільше
+
+
+    std::string mostUsedType = machineBTree.MostUsedMachineType();
+    std::cout << "The type of machine that is used the most: " << mostUsedType << std::endl;
 
     return 0;
 }
