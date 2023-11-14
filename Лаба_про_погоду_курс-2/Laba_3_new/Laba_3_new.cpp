@@ -1,99 +1,365 @@
 ﻿#include <iostream>
+#include <fstream>
 #include <vector>
+#include <queue>
+#include <unordered_map>
+#include <unordered_set>
 #include <algorithm>
-#include <locale>
 
-class Project {
-public:
-    int start_date;
-    int end_date;
-    int profit;
+using namespace std;
 
-    Project(int start, int end, int profit) : start_date(start), end_date(end), profit(profit) {}
+// Huffman Coding class
+struct HuffmanNode {
+    char data;
+    unsigned frequency;
+    HuffmanNode* left, * right;
+
+    HuffmanNode(char data, unsigned frequency) : data(data), frequency(frequency), left(nullptr), right(nullptr) {}
 };
 
-bool compareByProfitPerDay(const Project& a, const Project& b) {
-    return (a.profit / (a.end_date - a.start_date)) > (b.profit / (b.end_date - b.start_date));
-}
+struct Compare {
+    bool operator()(HuffmanNode* left, HuffmanNode* right) {
+        return left->frequency > right->frequency;
+    }
+};
 
-class TaskInput {
+class HuffmanCoding {
 private:
-    std::vector<Project>& projects;
-    int budget; // Додавання бюджету
+    std::string inputFileName;
+    std::string compressedFileName;
+    std::string decompressedFileName;
+    std::unordered_map<char, std::string> huffmanCodes;
+
+    HuffmanNode* buildHuffmanTree(const std::unordered_map<char, unsigned>& frequencies);
+    void generateCodes(HuffmanNode* root, std::string code);
 
 public:
-    TaskInput(std::vector<Project>& projectsRef, int budget) : projects(projectsRef), budget(budget) {}
+    HuffmanCoding(const std::string& inputFileName, const std::string& compressedFileName, const std::string& decompressedFileName);
 
-    void setInitialData() {
-        // Задає початкові дані або завантажує їх з файлу, бази даних, тощо.
-        // Можна реалізувати зчитування даних з консолі або іншим способом.
-        // Наприклад:
-        projects.push_back(Project(1, 5, 50));
-        projects.push_back(Project(2, 7, 80));
-        projects.push_back(Project(3, 4, 20));
-        // Додайте інші проєкти за необхідності
+    void compress();
+    void decompress();
+    void displayStatistics();
+
+    ~HuffmanCoding();
+};
+
+HuffmanCoding::HuffmanCoding(const std::string& inputFileName, const std::string& compressedFileName, const std::string& decompressedFileName)
+    : inputFileName(inputFileName), compressedFileName(compressedFileName), decompressedFileName(decompressedFileName) {}
+
+HuffmanNode* HuffmanCoding::buildHuffmanTree(const std::unordered_map<char, unsigned>& frequencies) {
+    std::priority_queue<HuffmanNode*, std::vector<HuffmanNode*>, Compare> minHeap;
+
+    for (const auto& entry : frequencies) {
+        minHeap.push(new HuffmanNode(entry.first, entry.second));
     }
 
-    void addNewProject() {
-        // Вводить нові параметри для нового проєкту та додає його до списку проєктів.
-        // Реалізуйте введення даних з консолі або іншим способом.
-        // Наприклад:
-        int start, end, profit;
-        std::cout << "Введіть початкову дату проєкту: ";
-        std::cin >> start;
-        std::cout << "Введіть кінцеву дату проєкту: ";
-        std::cin >> end;
-        std::cout << "Введіть прибуток проєкту: ";
-        std::cin >> profit;
+    while (minHeap.size() != 1) {
+        HuffmanNode* left = minHeap.top();
+        minHeap.pop();
 
-        projects.push_back(Project(start, end, profit));
+        HuffmanNode* right = minHeap.top();
+        minHeap.pop();
+
+        HuffmanNode* internalNode = new HuffmanNode('$', left->frequency + right->frequency);
+        internalNode->left = left;
+        internalNode->right = right;
+
+        minHeap.push(internalNode);
     }
 
-    // Додайте інші методи для коригування та видалення існуючих проєктів, які вам потрібні.
+    return minHeap.top();
+}
 
-    std::vector<Project> solveTask() {
-        // Розв'язання задачі з використанням жадібного алгоритму
-        std::sort(projects.begin(), projects.end(), compareByProfitPerDay);
+void HuffmanCoding::generateCodes(HuffmanNode* root, std::string code) {
+    if (root == nullptr) {
+        return;
+    }
 
-        std::vector<Project> selectedProjects;
-        int currentBudget = 0;
+    if (root->data != '$') {
+        huffmanCodes[root->data] = code;
+    }
 
-        for (const Project& project : projects) {
-            if (currentBudget + project.profit <= budget) {
-                selectedProjects.push_back(project);
-                currentBudget += project.profit;
+    generateCodes(root->left, code + "0");
+    generateCodes(root->right, code + "1");
+}
+
+void HuffmanCoding::compress() {
+    std::ifstream inputFile(inputFileName, std::ios::binary);
+    std::ofstream compressedFile(compressedFileName, std::ios::binary | std::ios::trunc);
+
+    std::unordered_map<char, unsigned> frequencies;
+    char ch;
+
+    while (inputFile.get(ch)) {
+        frequencies[ch]++;
+    }
+
+    inputFile.clear();
+    inputFile.seekg(0);
+
+    HuffmanNode* root = buildHuffmanTree(frequencies);
+    generateCodes(root, "");
+
+    for (const auto& entry : frequencies) {
+        compressedFile.write(reinterpret_cast<const char*>(&entry.first), sizeof(char));
+        compressedFile.write(reinterpret_cast<const char*>(&entry.second), sizeof(unsigned));
+    }
+
+    char buffer = 0;
+    int bitCount = 0;
+
+    while (inputFile.get(ch)) {
+        std::string code = huffmanCodes[ch];
+        for (char bit : code) {
+            buffer <<= 1;
+            buffer |= bit - '0';
+            bitCount++;
+
+            if (bitCount == 8) {
+                compressedFile.put(buffer);
+                buffer = 0;
+                bitCount = 0;
+            }
+        }
+    }
+
+    if (bitCount > 0) {
+        buffer <<= (8 - bitCount);
+        compressedFile.put(buffer);
+    }
+
+    inputFile.close();
+    compressedFile.close();
+}
+
+void HuffmanCoding::decompress() {
+    std::ifstream compressedFile(compressedFileName, std::ios::binary);
+    std::ofstream decompressedFile(decompressedFileName, std::ios::binary | std::ios::trunc);
+
+    std::unordered_map<char, unsigned> frequencies;
+    char ch;
+    unsigned freq;
+
+    while (compressedFile.read(reinterpret_cast<char*>(&ch), sizeof(char))) {
+        compressedFile.read(reinterpret_cast<char*>(&freq), sizeof(unsigned));
+        frequencies[ch] = freq;
+    }
+
+    HuffmanNode* root = buildHuffmanTree(frequencies);
+    generateCodes(root, "");
+
+    HuffmanNode* current = root;
+    char bit;
+
+    while (compressedFile.get(ch)) {
+        for (int i = 7; i >= 0; i--) {
+            bit = (ch >> i) & 1;
+            if (bit == 0) {
+                current = current->left;
+            }
+            else {
+                current = current->right;
+            }
+
+            if (current->left == nullptr && current->right == nullptr) {
+                decompressedFile.put(current->data);
+                current = root;
+            }
+        }
+    }
+
+    compressedFile.close();
+    decompressedFile.close();
+}
+
+void HuffmanCoding::displayStatistics() {
+    // Implement your logic to display compression/decompression statistics
+}
+
+HuffmanCoding::~HuffmanCoding() {
+    // Implement your logic for cleanup (e.g., deleting dynamically allocated memory)
+}
+
+// Shop class (from your previous code)
+struct Product {
+    int id;
+    bool isPopular;
+};
+
+class Shop {
+public:
+    Shop(const vector<Product>& popularProducts) : popularProducts(popularProducts), totalTime(0) {}
+
+    void processOrders(const vector<Product>& customerOrders);
+
+    void addProduct(const Product& newProduct);
+    void updateProduct(int productId, const Product& updatedProduct);
+    void removeProduct(int productId);
+
+private:
+    queue<Product> productsUnderHand;
+    unordered_set<int> popularProductsUnderHand;
+    vector<Product> popularProducts;
+    int totalTime;
+};
+
+void Shop::processOrders(const vector<Product>& customerOrders) {
+    for (const auto& order : customerOrders) {
+        bool isAvailable = false;
+
+        if (popularProductsUnderHand.count(order.id) > 0) {
+            isAvailable = true;
+        }
+        else {
+            if (productsUnderHand.size() < popularProducts.size()) {
+                productsUnderHand.push(order);
+                popularProductsUnderHand.insert(order.id);
+            }
+            else {
+                Product latestPopularProduct = productsUnderHand.front();
+                while (!productsUnderHand.empty()) {
+                    const auto& product = productsUnderHand.front();
+                    if (product.isPopular && product.id != order.id) {
+                        if (product.id == latestPopularProduct.id || product.id > latestPopularProduct.id) {
+                            latestPopularProduct = product;
+                        }
+                    }
+                    productsUnderHand.pop();
+                }
+
+                popularProductsUnderHand.erase(latestPopularProduct.id);
+
+                productsUnderHand.push(order);
+                popularProductsUnderHand.insert(order.id);
+
+                totalTime += 1;
             }
         }
 
-        return selectedProjects;
-    }
-};
+        totalTime += 1;
 
-class UserInterface {
-public:
-    static void displayProjects(const std::vector<Project>& projects) {
-        std::cout << "Вибрані проєкти:\n";
-        for (const Project& project : projects) {
-            std::cout << "Початок: " << project.start_date << ", Завершення: " << project.end_date
-                << ", Прибуток: " << project.profit << std::endl;
+        // Display order information
+        cout << "Order for Product " << order.id << " is ";
+        if (isAvailable) {
+            cout << "available ";
+        }
+        else {
+            cout << "not available ";
+        }
+        cout << "(Total Time: " << totalTime << " units)" << endl;
+    }
+}
+
+void Shop::addProduct(const Product& newProduct) {
+    popularProducts.push_back(newProduct);
+}
+
+void Shop::updateProduct(int productId, const Product& updatedProduct) {
+    for (auto& product : popularProducts) {
+        if (product.id == productId) {
+            product = updatedProduct;
+            break;
         }
     }
+}
+
+void Shop::removeProduct(int productId) {
+    auto it = remove_if(popularProducts.begin(), popularProducts.end(),
+        [productId](const Product& product) { return product.id == productId; });
+
+    popularProducts.erase(it, popularProducts.end());
+}
+
+// UserInterface class (from your previous code)
+class UserInterface {
+public:
+    static vector<Product> getUserOrders();
+    static Product inputProduct();
+    static int getProductId();
+    static void displayOrderInfo(const Product& product, bool isAvailable, int totalTime);
 };
 
+vector<Product> UserInterface::getUserOrders() {
+    vector<Product> orders;
+    int numberOfOrders;
+
+    cout << "Enter the number of orders: ";
+    cin >> numberOfOrders;
+
+    for (int i = 0; i < numberOfOrders; ++i) {
+        Product order;
+        cout << "Enter the product ID for order " << i + 1 << ": ";
+        cin >> order.id;
+
+        cout << "Is the product popular? (1 for yes, 0 for no): ";
+        cin >> order.isPopular;
+
+        orders.push_back(order);
+    }
+
+    return orders;
+}
+
+Product UserInterface::inputProduct() {
+    Product newProduct;
+    cout << "Enter the product ID: ";
+    cin >> newProduct.id;
+
+    cout << "Is the product popular? (1 for yes, 0 for no): ";
+    cin >> newProduct.isPopular;
+
+    return newProduct;
+}
+
+int UserInterface::getProductId() {
+    int productId;
+    cout << "Enter the product ID: ";
+    cin >> productId;
+
+    return productId;
+}
+
+void UserInterface::displayOrderInfo(const Product& product, bool isAvailable, int totalTime) {
+    cout << "Order for Product " << product.id << " is ";
+    if (isAvailable) {
+        cout << "available ";
+    }
+    else {
+        cout << "not available ";
+    }
+    cout << "(Total Time: " << totalTime << " units)" << endl;
+}
+
 int main() {
+    // Example input for Shop
+    vector<Product> popularProducts = { {1, true}, {2, true}, {3, true} };
+    Shop shop(popularProducts);
 
-    std::locale::global(std::locale("uk_UA"));
+    // Example input for UserInterface
+    vector<Product> customerOrders = UserInterface::getUserOrders();
+    shop.processOrders(customerOrders);
 
-    std::vector<Project> projects;
-    int budget = 100; // Задаємо бюджет
+    // Example input for Shop (continued)
+    Product newProduct = UserInterface::inputProduct();
+    shop.addProduct(newProduct);
 
-    TaskInput taskInput(projects, budget);
-    taskInput.setInitialData();
-    taskInput.addNewProject();
-    // Додайте виклики інших методів для коригування та видалення існуючих проєктів.
+    int productIdToUpdate = UserInterface::getProductId();
+    Product updatedProduct = UserInterface::inputProduct();
+    shop.updateProduct(productIdToUpdate, updatedProduct);
 
-    // Виведення результатів через інтерфейс
-    UserInterface::displayProjects(taskInput.solveTask());
+    int productIdToRemove = UserInterface::getProductId();
+    shop.removeProduct(productIdToRemove);
+
+    // Example input for HuffmanCoding
+    std::string inputFileName = "input.txt";
+    std::string compressedFileName = "compressed.bin";
+    std::string decompressedFileName = "decompressed.txt";
+
+    HuffmanCoding huffmanCoder(inputFileName, compressedFileName, decompressedFileName);
+
+    huffmanCoder.compress();
+    huffmanCoder.decompress();
+    huffmanCoder.displayStatistics();
 
     return 0;
 }
