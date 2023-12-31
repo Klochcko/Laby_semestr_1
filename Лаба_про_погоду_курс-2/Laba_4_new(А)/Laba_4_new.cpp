@@ -6,9 +6,11 @@
 
 using namespace std;
 
-// Клас для розв'язання задачі розбиття рядка
 class StringSplitter {
 public:
+    // Константа для обмеження кількості точок розрізу
+    const static int MAX_CUTS = 5;
+
     // Конструктор за замовчуванням
     StringSplitter() {}
 
@@ -21,13 +23,20 @@ public:
     // Метод для вводу нових параметрів
     void inputNewParameters() {
         cout << "Введіть новий рядок: ";
+        cin.ignore(); // очистка буфера вводу
         getline(cin, str_);
 
-        cout << "Введіть нові точки розрізу, розділені пробілами: ";
+        cout << "Введіть нові точки розрізу, розділені пробілами (максимум " << MAX_CUTS << "): ";
         int cut;
-        cuts_.clear();
-        while (cin >> cut) {
+        int attempts = 0;
+
+        while (cin >> cut && attempts < MAX_CUTS) {
             cuts_.push_back(cut);
+            attempts++;
+        }
+
+        if (attempts == MAX_CUTS) {
+            cout << "Досягнуто максимальну кількість точок розрізу. Вихід з введення.\n";
         }
     }
 
@@ -45,13 +54,20 @@ public:
         else if (choice > 0 && choice <= cuts_.size()) {
             // Коригування параметрів
             cout << "Введіть новий рядок: ";
+            cin.ignore(); // очистка буфера вводу
             getline(cin, str_);
 
-            cout << "Введіть нові точки розрізу, розділені пробілами: ";
+            cout << "Введіть нові точки розрізу, розділені пробілами (максимум " << MAX_CUTS << "): ";
             int cut;
-            cuts_.clear();
-            while (cin >> cut) {
+            int attempts = 0;
+
+            while (cin >> cut && attempts < MAX_CUTS) {
                 cuts_.push_back(cut);
+                attempts++;
+            }
+
+            if (attempts == MAX_CUTS) {
+                cout << "Досягнуто максимальну кількість точок розрізу. Вихід з введення.\n";
             }
         }
         else {
@@ -61,77 +77,68 @@ public:
 
     // Метод для розв'язання відповідної задачі
     void solveTask() {
-        findMinCostAndSplit();
-    }
+        // Перевірка на наявність точок розрізу
+        if (cuts_.empty()) {
+            cout << "Немає точок розрізу для виконання оптимального розбиття.\n";
+            return;
+        }
 
-private:
-    // Допоміжна функція для знаходження мінімальної вартості та оптимального розбиття
-    void findMinCostAndSplit() {
-        int n = str_.length();
+        // Ваш код для розв'язання задачі
+        vector<string> substrings;
 
-        // Ініціалізація таблиці для збереження вартостей розбиття та позначення розрізів
-        vector<vector<int>> cost(n, vector<int>(n, 0));
-        vector<vector<int>> split(n, vector<int>(n, 0));
+        for (size_t i = 0; i < cuts_.size(); ++i) {
+            int start = (i == 0) ? 0 : cuts_[i - 1];
+            int end = cuts_[i];
 
-        // Обчислення вартості для всіх можливих розбиттів
-        for (int len = 2; len <= n; ++len) {
-            for (int i = 0; i <= n - len; ++i) {
-                int j = i + len - 1;
-                cost[i][j] = INT_MAX;
-
-                // Обчислення вартості для кожного розрізу
-                for (int k = i; k < j; ++k) {
-                    int currentCost = cost[i][k] + cost[k + 1][j] + (cuts_[j] - cuts_[i] + 1);
-                    if (currentCost < cost[i][j]) {
-                        cost[i][j] = currentCost;
-                        split[i][j] = k;
-                    }
-                }
+            // Перевірка на валідність індексів перед доступом до str_
+            if (start >= 0 && end <= static_cast<int>(str_.size()) && start <= end) {
+                string substring = str_.substr(start, end - start);
+                substrings.push_back(substring);
+            }
+            else {
+                cout << "Помилка при розбитті рядка. Перевірте правильність введених точок розрізу.\n";
+                return;
             }
         }
 
-        // Виведення мінімальної вартості
-        cout << "Мінімальна вартість розбиття: " << cost[0][n - 1] << endl;
-
-        // Виведення оптимального розбиття
-        cout << "Оптимальне розбиття рядка: ";
-        printOptimalSplit(split, 0, n - 1);
-        cout << endl;
-    }
-
-    // Допоміжна функція для виведення оптимального розбиття
-    void printOptimalSplit(const vector<vector<int>>& split, int i, int j) {
-        if (i == j) {
-            cout << "S" << i + 1 << " ";
-        }
-        else {
-            cout << "(";
-            printOptimalSplit(split, i, split[i][j]);
-            printOptimalSplit(split, split[i][j] + 1, j);
-            cout << ")";
+        // Виводимо оптимальне розбиття
+        cout << "Оптимальне розбиття:\n";
+        for (const auto& substring : substrings) {
+            cout << "Substring: " << substring << endl;
         }
     }
 
+private:
     // Поля класу
     string str_;
     vector<int> cuts_;
 };
 
-// Клас для вхідних даних задачі
 class InputData {
 public:
+    // Максимальна кількість точок розрізу
+    const static int MAX_CUTS = 5;
+
     // Метод для задавання початкових даних
     static void setInitialData(StringSplitter& splitter) {
         string str;
         vector<int> cuts;
 
         cout << "Введіть рядок: ";
+        cin.ignore(); // очистка буфера вводу
         getline(cin, str);
 
-        cout << "Введіть точки розрізу, розділені пробілами (наприклад, 2 5): ";
+        cout << "Введіть точки розрізу, розділені пробілами (максимум " << MAX_CUTS << "): ";
         int cut;
-        while (cin >> cut) {
+        int attempts = 0;
+
+        while (cin >> cut && attempts < MAX_CUTS) {
             cuts.push_back(cut);
+            attempts++;
+        }
+
+        if (attempts == MAX_CUTS) {
+            cout << "Досягнуто максимальну кількість точок розрізу. Вихід з введення.\n";
         }
 
         splitter.setInitialData(str, cuts);
@@ -153,7 +160,6 @@ public:
     }
 };
 
-// Модуль інтерфейсної взаємодії з користувачем
 class UserInterface {
 public:
     // Метод для виклику необхідних операцій
@@ -195,7 +201,6 @@ public:
 };
 
 int main() {
-
     locale::global(std::locale("ru_RU"));
 
     StringSplitter splitter;
