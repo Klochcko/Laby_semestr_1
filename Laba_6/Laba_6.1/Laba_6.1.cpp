@@ -1,9 +1,9 @@
 ﻿#include <iostream>
+#include <vector>
 #include <string>
 
 using namespace std;
 
-// Структура для представлення даних про товар
 struct Product {
     string name;
     int quantity;
@@ -13,66 +13,49 @@ struct Product {
 };
 
 int main() {
-    const int MAX_PRODUCTS = 100; // Максимальна кількість товарів в магазині
+    const int MAX_PRODUCTS = 100;
     Product products[MAX_PRODUCTS];
 
-    int numProducts; // Кількість товарів в магазині
-    cout << "Введіть кількість товарів: ";
+    int numProducts;
+    cout << "Enter the number of products: ";
     cin >> numProducts;
 
-    // Введення даних про товари
     for (int i = 0; i < numProducts; ++i) {
-        cout << "Товар " << i + 1 << ":" << endl;
-        cout << "Найменування: ";
+        cout << "Product " << i + 1 << ":" << endl;
+        cout << "Name: ";
         cin >> products[i].name;
-        cout << "Кількість: ";
+        cout << "Quantity: ";
         cin >> products[i].quantity;
-        cout << "Вартість одиниці: ";
+        cout << "Unit Cost: ";
         cin >> products[i].unitCost;
-        cout << "Виробник: ";
+        cout << "Manufacturer: ";
         cin >> products[i].manufacturer;
-        cout << "Дата випуску: ";
+        cout << "Date: ";
         cin >> products[i].date;
     }
 
-    // Знаходження виробника з найнижчою середньою вартістю
-    string lowestManufacturer;
-    double lowestAverageCost = numeric_limits<double>::max();
+    vector<int> popularProducts; // Масив ідентифікаторів популярних продуктів
 
-    for (int i = 0; i < numProducts; ++i) {
-        string currentManufacturer = products[i].manufacturer;
-        double totalCost = 0.0;
-        int numProductsByManufacturer = 0;
-
-        for (int j = 0; j < numProducts; ++j) {
-            if (products[j].manufacturer == currentManufacturer) {
-                totalCost += products[j].unitCost;
-                numProductsByManufacturer++;
-            }
-        }
-
-        double averageCost = totalCost / numProductsByManufacturer;
-        if (averageCost < lowestAverageCost) {
-            lowestAverageCost = averageCost;
-            lowestManufacturer = currentManufacturer;
-        }
+    // Користувач вводить ідентифікатори популярних продуктів
+    cout << "Enter IDs of popular products (0-based indexing), -1 to end: ";
+    int productId;
+    while (true) {
+        cin >> productId;
+        if (productId == -1)
+            break;
+        popularProducts.push_back(productId);
     }
 
-    cout << "Виробник з найнижчою середньою вартістю товару: " << lowestManufacturer << endl;
-
-    // Знаходження загальної суми товару за його найменуванням
-    string desiredProduct;
-    cout << "Введіть найменування товару для знаходження загальної суми: ";
-    cin >> desiredProduct;
-
-    double totalAmount = 0.0;
-    for (int i = 0; i < numProducts; ++i) {
-        if (products[i].name == desiredProduct) {
-            totalAmount += products[i].quantity * products[i].unitCost;
+    // Виведення інформації про популярні продукти
+    cout << "Popular products:" << endl;
+    for (int id : popularProducts) {
+        if (id >= 0 && id < numProducts) {
+            cout << "Name: " << products[id].name << ", Quantity: " << products[id].quantity << ", Unit Cost: " << products[id].unitCost << endl;
+        }
+        else {
+            cout << "Invalid product ID: " << id << endl;
         }
     }
-
-    cout << "Загальна сума товару " << desiredProduct << ": " << totalAmount << endl;
 
     return 0;
 }
